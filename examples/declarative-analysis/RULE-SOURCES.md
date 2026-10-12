@@ -10,7 +10,7 @@ inferential guarantee. Access checked on 2026-10-12 where noted below.
 
 ## Tony's representation and process intentions
 
-Local reference: `~/projects/cl/common-lisp-stat`. The historical code is a
+Reference repository: `common-lisp-stat`, in any available local checkout. The historical code is a
 design reference; many procedures and examples are explicitly prototypes.
 
 - **tony-data:** `src/data/data.lisp:25`: multiscale metadata; storage form,

@@ -27,7 +27,8 @@ The runtime currently produces proposals only.
 ## Setup on a new machine
 
 Use ocicl for project-local, locked dependencies. See [SETUP.md](SETUP.md)
-for macOS/Linux prerequisites, installation locations and custom paths.
+for explicit ocicl installation commands on macOS/Debian, ASDF registration,
+installation locations and custom paths.
 With Homebrew available on macOS, or a supported Linux package manager:
 
 ```sh
@@ -36,8 +37,8 @@ sbcl --load examples/declarative-analysis/.deps/load.lisp
 ```
 
 The script installs OS tools when explicitly requested, restores the committed
-`ocicl.csv`, and fetches a pinned Wouldwork checkout. It reuses a working ocicl
-2.17.0+ or builds one locally. Quicklisp is optional. Setup and tests are
+`ocicl.csv`, including Wouldwork installed by ocicl from a pinned Git source. It reuses a working ocicl
+2.20.0+ or builds one locally. Quicklisp is optional. Setup and tests are
 synchronous; loading the package performs no installation.
 
 ## Files that exist now
@@ -49,7 +50,7 @@ synchronous; loading the package performs no installation.
 | `AGENTS.md` | Implementation instructions and scientific constraints |
 | `declarative-analysis.asd`, `load.lisp`, `src/` | Loadable mini package, CLOS grammar, fixtures, isolated Wouldwork adapter |
 | `interface/grammar-demo.lisp` | Executable high-level laboratory example |
-| `run-grammar.py`, `tests/` | Isolated runtime, 29 domain checks and 5 package integration checks |
+| `run-grammar.py`, `tests/` | Isolated runtime, 29 domain checks and 8 package integration checks |
 | `RULE-SOURCES.md` | Source map, research questions, and rule-admission checklist |
 | `interface/entry-form.lisp` | Loadable, quoted record of the intended high-level expression |
 | `fixtures/studies.sexp` | Synthetic independent, paired, and repeated-reading study forms; clinical and qPCR extension forms |
@@ -136,30 +137,39 @@ loads Wouldwork into your Lisp image nor performs a search.
 You can also construct your own study with `study :data (dataset ...)` and
 configure its aspects; see [GRAMMAR.md](GRAMMAR.md).
 
-## Planner prerequisites and isolation
+## ASDF discovery and planner isolation
 
-A proposal request uses Python 3 to launch a temporary SBCL process with an
-isolated copy of an existing Wouldwork checkout. The setup script installs
-`alexandria`, `iterate`, `lparallel` and their dependencies through ocicl. The
-worker loads `.deps/dependencies.lisp`; the caller's Lisp image does not load
-ocicl or Wouldwork. Existing Quicklisp installations remain a fallback when
-`*dependency-setup*` is NIL. Nothing is installed by loading the package.
-After default setup, paths are discovered automatically; otherwise override
-these special variables before calling `propose` if necessary:
+Both collaborators use SBCL. The grammar has only UIOP as an in-image dependency;
+the worker libraries are Alexandria, Iterate and Lparallel. ASDF resolves their
+transitive dependency sources when a proposal is requested. The standalone
+launcher and the REPL have no assumed repository or Quicklisp directory.
+
+If ASDF already knows the systems, load normally:
 
 ```lisp
-(setf clds-demo:*wouldwork-source* #p"/path/to/wouldwork/"
-      clds-demo:*dependency-setup* #p"/path/to/dependencies.lisp"
-      clds-demo:*planner-sbcl* "sbcl"
-      clds-demo:*planner-python* "python3")
+(asdf:load-system "declarative-analysis")
+(defparameter experiment (clds-demo:demo))
+(clds-demo:propose experiment :analysis)
 ```
 
-Calls are synchronous. Each worker has a 60-second bound, is waited for or
-killed and reaped on failure, and removes temporary sources and ASDF output.
-The parent removes request/result files on both success and failure. No
-persistent worker is started. The source checkout's active problem and settings
-and the caller's loaded Wouldwork package are left alone. Missing prerequisites
-signal an error while preserving previous study checks, proposals and approvals.
+The setup script writes an ASDF registry for the directories you choose.
+`--prefix` selects the dependency location; `--wouldwork-source` can reuse a
+checkout anywhere. Its generated loader uses relative registry entries and
+`asdf:load-system`, supporting movement of the whole installation. Independent
+moves require updated ASDF registration. See [SETUP.md](SETUP.md).
+
+Wouldwork's definition is located using `asdf:locate-system`, without evaluating
+its initializer in the original checkout. Only the copied system is loaded in
+a temporary SBCL worker. The worker receives ASDF-resolved source directories
+as data, uses the same SBCL executable as the caller, and needs no guessed
+Quicklisp or ocicl startup path. An explicit `*wouldwork-source*` override is
+available for special cases; its default is NIL, meaning ASDF discovery.
+
+Calls are synchronous and bounded. Workers are waited for or killed and reaped
+on failure; temporary sources and ASDF output are removed. No persistent worker
+is started. The caller's Wouldwork state and source checkout are preserved.
+Missing registered systems signal an error while preserving previous study
+checks, proposals and approvals. Loading the grammar performs no installation.
 
 ## Run the tests
 
@@ -170,7 +180,7 @@ After loading either entry file:
 ```
 
 This runs 29 grammar and real Wouldwork domain checks in one isolated worker,
-then 5 package integration checks through the ordinary REPL API. The checks
+then 8 package integration checks through the ordinary REPL API. The checks
 cover metadata and unit counts, alternate paired routes, independent-group
 eligibility, missing or contradicted premises, incomplete pairs, configuration
 atomicity, revision/selection invalidation, source immutability, worker state
@@ -185,8 +195,10 @@ python3 examples/declarative-analysis/run-grammar.py
 python3 examples/declarative-analysis/run-grammar.py --check
 ```
 
-The runner accepts `--wouldwork`, `--dependency-setup`, `--quicklisp`, and
-`--sbcl` paths. An explicit `--quicklisp` selects the fallback. The full
+The runner uses ASDF source discovery. `--dependency-setup` accepts a registry
+initializer, and an explicit `--quicklisp` can initialize an existing Quicklisp
+environment. Neither initializer path is guessed. `--wouldwork` remains an
+explicit source override. The full
 demonstration configures a goal, checks the study, finds paired-analysis routes,
 records an explicit selection, and demonstrates stale selections after edits.
 

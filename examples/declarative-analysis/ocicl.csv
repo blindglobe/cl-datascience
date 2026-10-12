@@ -8,3 +8,4 @@ lparallel-bench, ghcr.io/ocicl/lparallel@sha256:4b9e626031904279f7f2b53b3ca52f38
 lparallel-test, ghcr.io/ocicl/lparallel@sha256:4b9e626031904279f7f2b53b3ca52f380642cb5402390e478fe1f535f0829379, lparallel-20240503-9c11f40/lparallel-test.asd
 trivial-features, ghcr.io/ocicl/trivial-features@sha256:e278e24d39060fc7d3715531b16ddd9ab7f93f22ade53e436c0b86dbae3aa065, trivial-features-1.0/trivial-features.asd
 trivial-garbage, ghcr.io/ocicl/trivial-garbage@sha256:a85dcf4110ad60ae9f6c70970acceb2bf12402ce5326891643d35506059afb1d, trivial-garbage-20240503-3474f64/trivial-garbage.asd
+wouldwork, git+https://github.com/davypough/wouldwork.git@1d4e764633365ff5f7c187b94e98c1f8f09ed2fd#ref=1d4e764633365ff5f7c187b94e98c1f8f09ed2fd, wouldwork-1d4e764/wouldwork.asd

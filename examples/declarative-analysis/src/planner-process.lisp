@@ -1,25 +1,6 @@
 ;;; Copyright (c) 2026 Gwang Jin Kim. SPDX-License-Identifier: MIT.
 (in-package :clds-example)
 
-(defparameter *wouldwork-source*
-  (let ((local (asdf:system-relative-pathname "declarative-analysis" ".deps/wouldwork/")))
-    (if (probe-file (merge-pathnames "wouldwork.asd" local)) local
-        (merge-pathnames "projects/cl/wouldwork/" (user-homedir-pathname))))
-  "Existing Wouldwork source checkout, copied for each proposal request.")
-(defparameter *quicklisp-setup*
-  (merge-pathnames "quicklisp/setup.lisp" (user-homedir-pathname)))
-(defparameter *dependency-setup*
-  (probe-file (asdf:system-relative-pathname "declarative-analysis" ".deps/dependencies.lisp"))
-  "Worker-only dependency initializer; NIL uses the optional Quicklisp fallback.")
-
-(defun worker-dependency-arguments ()
-  (if *dependency-setup*
-      (list "--dependency-setup" (namestring (pathname *dependency-setup*)))
-      (list "--quicklisp" (namestring (pathname *quicklisp-setup*)))))
-
-(defparameter *planner-sbcl* "sbcl")
-(defparameter *planner-python* "python3")
-
 (defun wire-value (value)
   "Portable data-only transport; symbolic labels use the grammar's name semantics."
   (typecase value
@@ -66,8 +47,7 @@
            (append (list *planner-python*
                  (namestring (asdf:system-relative-pathname "declarative-analysis" "run-grammar.py"))
                  "--request" (namestring request) "--result" (namestring result)
-                 "--wouldwork" (namestring (pathname *wouldwork-source*))
-                 "--sbcl" *planner-sbcl*) (worker-dependency-arguments))
+                 ) (worker-arguments))
            :output :string :error-output :output :ignore-error-status t)
         (declare (ignore errors))
         (unless (eql status 0)

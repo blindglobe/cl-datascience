@@ -12,12 +12,12 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --install-system) install_system=1; shift ;;
     --test) shift ;;
-    --prefix|--ocicl)
+    --prefix|--ocicl|--wouldwork-source)
       if [[ $# -lt 2 ]]; then echo "Missing value for $1." >&2; exit 1; fi
       shift 2 ;;
     -h|--help)
       while IFS= read -r help_line; do printf '%s\n' "$help_line"; done <<'HELP'
-Usage: bash setup.sh [--install-system] [--prefix DIR] [--ocicl PATH] [--test]
+Usage: bash setup.sh [--install-system] [--prefix DIR] [--ocicl PATH] [--wouldwork-source DIR] [--test]
 
 Installs locked Lisp dependencies and a pinned Wouldwork into .deps/ by default.
 Uses a working ocicl on PATH, or builds a pinned ocicl locally with SBCL.
@@ -25,6 +25,7 @@ Uses a working ocicl on PATH, or builds a pinned ocicl locally with SBCL.
                  or zypper. Homebrew must already be installed on macOS.
 --prefix DIR     Use a different dependency directory; a loader is generated there.
 --ocicl PATH     Use this ocicl executable (fail if it cannot start).
+--wouldwork-source DIR  Reuse an existing Wouldwork checkout in any directory.
 --test           Run the full Lisp package suite after setup.
 
 Required OS tools: SBCL, Python 3.9+, git, curl, tar and CA certificates.

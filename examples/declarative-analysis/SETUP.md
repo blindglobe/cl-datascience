@@ -1,120 +1,172 @@
-# Fresh-machine setup with ocicl
+# SBCL, ocicl and ASDF setup
 
 Copyright (c) 2026 Gwang Jin Kim. SPDX-License-Identifier: MIT.
 
-Use **SBCL + ocicl** for this example. Quicklisp is optional. Ocicl downloads
-project-local ASDF systems and restores the versions recorded in `ocicl.csv`;
-see the [official ocicl documentation](https://github.com/ocicl/ocicl#installing-systems).
-Wouldwork is fetched separately at a pinned Git commit because its initializer
-writes working files. Searches always use temporary copies of that checkout.
+The example and Wouldwork can live in any directories. **ASDF locates the
+systems; ocicl installs Lisp libraries.** There is no assumed author-specific
+home directory, repository layout, or Quicklisp installation location.
+Both the REPL and isolated planner use SBCL.
 
-## Get the example
+## Install ocicl on macOS
 
-Obtain a checkout or archive containing `examples/declarative-analysis/`.
-The example currently lives on branch `example/declarative-analysis-mini-package`.
-Once that branch is published on the fork, clone it with:
+Install [Homebrew](https://brew.sh/) first if needed, and follow its displayed
+PATH instructions. Then run:
+
+```sh
+brew install sbcl ocicl python git
+ocicl version
+ocicl setup
+```
+
+`brew install ocicl` is the command documented by
+[Homebrew](https://formulae.brew.sh/formula/ocicl). `ocicl setup` installs its
+runtime and prints suggested SBCL startup configuration; see
+[ocicl's Homebrew instructions](https://github.com/ocicl/ocicl#homebrew).
+For this example, the generated ASDF registry handles source discovery, so
+editing `~/.sbclrc` is optional.
+
+## Install ocicl on Debian
+
+Install the base tools:
+
+```sh
+sudo apt-get update
+sudo apt-get install -y sbcl python3 git curl tar ca-certificates
+```
+
+For **Debian amd64/x86_64**, the official ocicl project provides an apt
+repository. Register its signing key and repository, then install ocicl:
+
+```sh
+curl -fsSL https://ocicl.github.io/ocicl/deb-repo/ocicl-archive-keyring.gpg \
+  | sudo tee /usr/share/keyrings/ocicl-archive-keyring.asc >/dev/null
+printf '%s\n' \
+  'deb [signed-by=/usr/share/keyrings/ocicl-archive-keyring.asc] https://ocicl.github.io/ocicl/deb-repo stable main' \
+  | sudo tee /etc/apt/sources.list.d/ocicl.list >/dev/null
+sudo apt-get update
+sudo apt-get install -y ocicl
+ocicl version
+ocicl setup
+```
+
+These follow the [official ocicl Debian/Ubuntu instructions](https://github.com/ocicl/ocicl#linux-packages).
+`stable` above names the ocicl repository channel, not a Debian release codename.
+
+For Debian arm64, or if you prefer not to add the apt repository, the example's
+setup script builds pinned ocicl 2.20.0 locally when a compatible ocicl is not
+available. Install the base tools above, then run the example setup below.
+The source build uses your installed SBCL and the dependencies bundled in the
+pinned official source tree. No additional ocicl system repository is needed.
+
+## Get and set up the example
+
+Clone the example branch into any directory you choose:
 
 ```sh
 git clone --branch example/declarative-analysis-mini-package \
   https://github.com/gwangjinkim/cl-datascience.git
 cd cl-datascience
+bash examples/declarative-analysis/setup.sh --test
 ```
 
-Git is needed to clone a repository. A repository archive can be unpacked first
-if Git is not installed; the setup script can then install Git with the other
-OS tools. A branch existing only on the maintainer's machine must be shared or
-pushed before someone else can clone it.
+The script restores the committed `ocicl.csv`, including Wouldwork, through ocicl,
+and writes an ASDF source-registry initializer. It reuses a working ocicl 2.20.0+
+or builds pinned 2.20.0 locally. Quicklisp is not required.
 
-## macOS
-
-Install [Homebrew](https://brew.sh/) first if it is not already available,
-and follow its displayed instructions to put `brew` on PATH. Its installer may
-also request Apple's command-line developer tools.
-
-From the repository root:
+If OS tools are missing, pass `--install-system` to install them using Homebrew
+on macOS or apt on Debian. Homebrew must already be available. Linux dnf,
+pacman and zypper command selection is also supported.
 
 ```sh
 bash examples/declarative-analysis/setup.sh --install-system --test
 ```
 
-The script uses Homebrew to install missing SBCL, Python 3, Git and curl.
-It reuses ocicl **2.17.0 or newer** when a working executable is on PATH;
-otherwise it builds pinned ocicl 2.17.0 locally with your SBCL. You may prefer
-to install ocicl through Homebrew yourself:
+Network access to GitHub and ocicl's OCI registry is needed for downloads.
+The ocicl source build reserves 3 GiB of SBCL dynamic address space and can take
+several minutes. Python 3.9+ is required for setup and the isolated launcher.
+
+## Install Wouldwork through ocicl
+
+The setup script's `ocicl install` restores **both Wouldwork and its libraries**
+from `ocicl.csv`. There is no separate manual clone step for Wouldwork.
+
+To install the tested Wouldwork revision yourself, change to your chosen ocicl
+project directory and run:
 
 ```sh
-brew install sbcl python git ocicl
-bash examples/declarative-analysis/setup.sh --test
+ocicl install 'git+https://github.com/davypough/wouldwork.git@1d4e764633365ff5f7c187b94e98c1f8f09ed2fd'
 ```
 
-The script runs ocicl's mandatory setup under its own dependency directory;
-you do not need to add anything to `~/.sbclrc`. The Homebrew and ocicl procedures
-follow their [installation documentation](https://github.com/ocicl/ocicl#homebrew).
+Ocicl 2.20.0 supports this [Git-source installation syntax](https://github.com/ocicl/ocicl#installing-systems-from-git).
+It fetches the source, resolves dependencies and records the exact commit in
+`ocicl.csv`, alongside registry artifacts for the libraries. The example's
+committed lockfile already records that installation; `ocicl install` with no
+arguments restores it. The pin selects the version tested with this adapter.
 
-## Linux
+ASDF finds the resulting `wouldwork.asd` through normal source discovery or
+ocicl's ASDF hook. It does not need to know an author-specific repository path.
+The example intentionally loads Wouldwork only in its temporary worker, since
+reading the installed `.asd` can initialize working files in its source tree.
 
-From the repository root, use the same command:
+## Put the repositories wherever you want
+
+Use a separate dependency directory, and optionally reuse a Wouldwork checkout
+in another location:
 
 ```sh
-bash examples/declarative-analysis/setup.sh --install-system --test
+bash examples/declarative-analysis/setup.sh \
+  --prefix /your/chosen/dependency-directory \
+  --wouldwork-source /your/chosen/wouldwork-directory \
+  --test
 ```
 
-It supports `apt-get` (Debian/Ubuntu), `dnf` (Fedora and related distributions),
-`pacman` (Arch), or `zypper` (openSUSE). OS package installation uses sudo when
-needed and installs SBCL, Python 3, Git, curl, tar and CA certificates. It builds
-ocicl locally if no compatible executable is installed, avoiding the need to
-add an ocicl package repository. The source build uses the dependencies bundled
-in the official pinned ocicl source tree.
+The paths are choices supplied by the installer, not fixed runtime defaults.
+`--wouldwork-source` reuses a directory containing `wouldwork.asd`; it does not
+reset, pull, or modify that checkout. Without it, ocicl installs the pinned Wouldwork entry from the lockfile into
+its managed source tree in the selected dependency directory.
 
-For a distribution without those package managers, install the required OS
-tools with your distribution's package manager, then run:
+The generated loader registers relative directories with ASDF and calls
+`asdf:load-system`. It does not embed absolute author paths or set a fixed
+Wouldwork runtime directory. It supports moving the whole installation while
+preserving the relative layout; if repositories are moved independently,
+update their ASDF registration or rerun setup to refresh that registration.
 
-```sh
-bash examples/declarative-analysis/setup.sh --test
+If ASDF already knows your systems and libraries, use it directly:
+
+```lisp
+(require :asdf)
+(asdf:load-system "declarative-analysis")
+(defparameter experiment (clds-demo:demo))
+(clds-demo:propose experiment :analysis)
+(format t "~A" (clds-demo:report experiment))
 ```
 
-The source build targets the machine's native architecture; it is not an
-x86-only downloaded executable. Python 3.9+ is required. The ocicl build reserves
-3 GiB of SBCL dynamic address space, matching upstream's default; the build can
-take several minutes. Network access to GitHub and the ocicl OCI registry is
-needed during setup. Registry certificates remain verified.
+If necessary, register directories in the current SBCL session. Substitute your
+own locations; ASDF's normal persistent source-registry configuration also works:
 
-## What is installed, and where?
+```lisp
+(asdf:initialize-source-registry
+ '(:source-registry
+   (:directory "/your/cl-datascience/examples/declarative-analysis/")
+   (:directory "/your/wouldwork/")
+   (:tree "/your/installed/lisp-libraries/")
+   :inherit-configuration))
+```
 
-Default dependency directory: `examples/declarative-analysis/.deps/`.
+If you already use ocicl or Quicklisp, their ASDF discovery hooks can supply the
+library locations. The runtime resolves the transitive library dependency plan
+through ASDF and passes those actual source directories to the clean worker.
+No dependency-manager startup file is assumed or required by that worker.
 
-| Component | Location | Purpose |
-|---|---|---|
-| SBCL, Python, Git, curl, tar, certificates | Homebrew prefix or Linux system package directories | OS tools, installed only with `--install-system` |
-| ocicl executable | Existing PATH executable, or `.deps/tools/bin/ocicl` | Lisp dependency manager |
-| Local ocicl build sources | `.deps/tools/ocicl-source/` when needed | Pinned official source tree |
-| ocicl runtime/configuration | `.deps/ocicl-data/ocicl/` | Worker-only ASDF dependency support |
-| Lisp libraries | `.deps/ocicl/` | Alexandria, Iterate, Lparallel and transitive dependencies |
-| Installed dependency lock | `.deps/ocicl.csv` | Copy of the committed `ocicl.csv` |
-| Wouldwork source | `.deps/wouldwork/` | Commit `1d4e764633365ff5f7c187b94e98c1f8f09ed2fd` |
-| Setup/build compilation cache | `.deps/cache/` | Compiled Lisp files during setup/tests |
-| Generated loader | `.deps/load.lisp` | Load the example and configure worker paths |
-| Dependency initializer | `.deps/dependencies.lisp` | Loaded only by isolated workers |
+## Load the generated setup
 
-`.deps/` is ignored by Git. Commit `ocicl.csv`, not downloaded source trees.
-Proposal workers put their compilation output and Wouldwork working files in
-separate temporary directories, which are removed when each request ends.
-Ordinary REPL compilation follows the user's ASDF cache settings.
-
-No shell or Lisp startup files are edited. No server, watcher, scheduled task,
-or persistent planner is started. The installer waits for commands and cleans
-up temporary bootstrap/download directories on failure. Previously installed
-OS packages and completed downloads stay available after an interrupted setup.
-
-## Load and try
-
-After default setup, from the repository root:
+The script prints its generated loader path. With the default dependency directory:
 
 ```sh
 sbcl --load examples/declarative-analysis/.deps/load.lisp
 ```
 
-At the Lisp prompt:
+At the prompt:
 
 ```lisp
 (in-package :clds-demo)
@@ -124,45 +176,72 @@ At the Lisp prompt:
 (asdf:test-system "declarative-analysis")
 ```
 
-The shorter `examples/try-declarative-analysis.lisp` also discovers the default
-`.deps/` environment automatically. Loading the example itself needs only SBCL;
-proposing analyses needs a completed dependency setup.
+`examples/try-declarative-analysis.lisp` also reads the default generated ASDF
+registry when present. Loading the grammar itself needs only SBCL and ASDF.
+The planner libraries are needed when proposals or full tests are requested.
 
-## Reruns, custom directories and tests
+## What is installed, and where?
 
-Rerunning setup reuses locked library versions and unchanged pinned checkouts.
-It refuses to reset tracked changes or replace a nonempty unrelated directory.
-If the installed lock differs from the current checkout, use a fresh prefix to
-install the new lock. Nothing runs `ocicl latest` or pulls a newer Wouldwork.
+Default dependency directory: `examples/declarative-analysis/.deps/`.
+Use `--prefix` to change it.
 
-```sh
-bash examples/declarative-analysis/setup.sh \
-  --prefix "$HOME/.local/share/clds-demo" --test
-```
+| Component | Location |
+|---|---|
+| SBCL, Python, Git, curl, tar, certificates | Homebrew prefix or Linux package directories |
+| ocicl executable | Existing PATH executable, or selected prefix's `tools/bin/ocicl` |
+| Local ocicl build sources, when needed | Selected prefix's `tools/ocicl-source/` |
+| ocicl setup/configuration | Selected prefix's `ocicl-data/ocicl/` |
+| Downloaded Lisp libraries | Selected prefix's `ocicl/` |
+| Installed dependency lock | Selected prefix's `ocicl.csv` |
+| Wouldwork source | ASDF resolves its ocicl-managed source tree; an explicitly reused checkout may live anywhere |
+| Setup/test compilation cache | Selected prefix's `cache/` |
+| Generated loader and ASDF registry | Selected prefix's `load.lisp` and `dependencies.lisp` |
 
-The script prints the absolute generated loader path. Load that file for a
-custom prefix. `--ocicl /absolute/path/to/ocicl` selects a compatible existing
-executable explicitly; if it is broken or too old, setup stops with an error.
-Without that option, setup builds a local copy when necessary, including when
-a system ocicl saved image no longer matches an updated SBCL.
+The ocicl lockfile pins Wouldwork to commit `1d4e764633365ff5f7c187b94e98c1f8f09ed2fd`.
+An explicitly supplied existing checkout can have another version; the adapter
+must be compatible with that version. ASDF chooses the source it actually
+registers. `clds-demo:*wouldwork-source*` is an optional explicit override for
+special cases; its normal default is NIL, meaning ASDF discovery.
 
-`--test` runs the offline installer tests and the full Lisp suite. The Lisp suite
-checks actual Wouldwork search, grammar/state behavior and worker isolation; it
-does not qualify numerical statistical inference. To run just installer checks:
+Reading Wouldwork's `.asd` can initialize writable working files. The runtime
+uses `asdf:locate-system` to find that definition without evaluating it, then
+loads only an isolated temporary copy. Workers use the caller's SBCL executable
+and an ASDF registry made from the resolved library directories. They do not
+load the caller's Lisp startup file or download packages while searching.
+
+Commit `ocicl.csv`, not `.deps/` or downloaded trees. No shell/Lisp startup files
+are edited automatically. No persistent planner, server or watcher is started.
+Setup waits for commands and cleans temporary bootstrap/download directories on
+failure. Completed downloads and installed OS packages remain reusable.
+
+## Reruns, tests and standalone runner
+
+Reruns reuse locked libraries and unchanged pinned sources, and refuse to reset
+tracked changes or overwrite unrelated nonempty directories. Use a fresh prefix
+if the installed lock differs from the current checkout. `--ocicl /path/to/ocicl`
+selects a compatible executable explicitly. Otherwise an unusable or old ocicl
+triggers a local build, including saved-image mismatches after an SBCL upgrade.
+
+`--test` runs 11 offline installer checks and 37 Lisp checks (29 domain checks
+and 8 package checks). These test actual Wouldwork search, configuration state,
+ASDF source lookup and worker isolation; they do not qualify numerical inference.
 
 ```sh
 python3 -m unittest discover -s examples/declarative-analysis/tests -p 'test_*.py'
+python3 examples/declarative-analysis/run-grammar.py --check
 ```
 
-Verification during development: actual ocicl source build, fresh dependency
-installation and all 34 Lisp checks passed on macOS, including a custom prefix
-with spaces and Unicode. The 10 installer checks include mocked Homebrew and
-apt command selection. End-to-end installation on Linux has not been run here.
+The standalone runner discovers sources through SBCL/ASDF, using the default
+generated loader when present. With a custom setup, pass
+`--dependency-setup /your/ASDF-registry-initializer.lisp`. An explicit
+`--quicklisp /your/Quicklisp-setup.lisp` can initialize an existing Quicklisp
+ASDF environment. There is no guessed Quicklisp path. An already-running Lisp
+session can use its in-memory ASDF registry directly through `propose`.
 
-## Optional Quicklisp fallback
-
-An existing Quicklisp setup and Wouldwork checkout still work. Explicitly pass
-`--quicklisp /path/to/setup.lisp` to `run-grammar.py`, or set
-`clds-demo:*dependency-setup*` to NIL and `clds-demo:*quicklisp-setup*` to its path.
-The fallback needs Alexandria, Iterate and Lparallel installed through Quicklisp.
-A new machine using the ocicl setup does not need Quicklisp.
+Verification: all 48 checks passed on macOS with actual ocicl 2.20.0
+installation of Wouldwork from the lockfile. The full Lisp suite also passed with
+the example, Wouldwork and
+libraries in separate arbitrary directories, followed by a real proposal after
+moving the generated setup. Installer checks cover mocked Homebrew/apt command
+selection. Debian installation instructions were checked against upstream docs;
+end-to-end Debian installation has not been run here.

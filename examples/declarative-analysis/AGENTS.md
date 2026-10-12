@@ -71,8 +71,8 @@ Consult the common-lisp-stat repository's `src/data/data.lisp`,
 `src/data/dataframe.lisp`, `src/data/modelframe.lisp`,
 `src/data/missing-data.lisp`, `src/procedures/procedures.lisp`,
 `examples/500-InferentialDataAnalysis.lisp`, and
-`Doc/talks/Rossini-Reisensburg-2014-CLS.tex`. Local reference checkout:
-`~/projects/cl/common-lisp-stat`. Sources and interpretation notes are in
+`Doc/talks/Rossini-Reisensburg-2014-CLS.tex`. Use any accessible checkout of that repository; these are paths relative to
+its root. Sources and interpretation notes are in
 `RULE-SOURCES.md`. Use the old system for design evidence; do not assume its
 prototypes compile or require installing it as a runtime dependency.
 
@@ -146,8 +146,8 @@ Avoid copying textbook prose; record concise rules and citations.
 
 ## Wouldwork integration
 
-Inspect the installed version at `~/projects/cl/wouldwork`, rather than
-assuming PDDL syntax or command names. It offers types, static/dynamic
+Locate the installed Wouldwork definition through ASDF; do not assume a
+home-directory layout, PDDL syntax or command names. It offers types, static/dynamic
 relations, queries, actions, initial facts, and goals. Translate the checked
 study and goal into that vocabulary. Derive applicability from metadata;
 do not require users to declare the intended eligible procedure.
@@ -202,16 +202,21 @@ Keep incomparable candidates visible; identify changed targets separately.
 Current prototype: CLOS study/data objects, aspect patches and configuration
 sheets, revision history and stale approvals, validated fixture overlays,
 structural checks, real bounded Wouldwork routes, and a textual proposal report.
+Use `asdf:locate-system` for Wouldwork discovery without evaluating its .asd
+in the user's checkout. Resolve library sources with ASDF's dependency plan and
+pass those directories to a fresh SBCL worker. Do not replace discovery with
+personal paths, guessed Quicklisp locations, or an eager Wouldwork dependency
+on the core system. Both collaborators use SBCL; use the caller's executable.
 The mini package loads through `load.lisp` or ASDF; `demo` returns a fresh
 configured object. Ordinary REPL proposals use the synchronous Python launcher
 and an isolated SBCL worker. Do not move Wouldwork into the caller's Lisp image
 or remove worker cleanup. Keep data transport versioned and reader evaluation
 disabled. `asdf:test-system` runs domain and REPL integration checks.
 `setup.sh`/`setup.py` install locked ocicl dependencies under `.deps/`, with a
-pinned Wouldwork checkout. System package installation requires the explicit
+pinned Git-source Wouldwork entry managed by ocicl in the lockfile. System package installation requires the explicit
 `--install-system` flag. Never install by loading the Lisp package, edit startup
 files, reset dependency checkout changes, or weaken TLS verification. Keep the
-committed `ocicl.csv` and worker dependency initialization in sync. Installer
+committed `ocicl.csv` and ASDF source registration in sync. Installer
 checks run with Python's standard-library unittest framework.
 Rules remain draft, numerical execution is not implemented, and the full
 statistical equivalence/precision contracts are not qualified. Keep those

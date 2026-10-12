@@ -1,104 +1,116 @@
 #!/usr/bin/env python3
 # Copyright (c) 2026 Gwang Jin Kim. SPDX-License-Identifier: MIT.
-"""Run the object/aspect grammar demo and real Wouldwork search in isolation.
+"""Run the grammar demo/checks with ASDF-resolved libraries and isolated Wouldwork.
 
-python3 run-grammar.py           # user-facing grammar and generated proposals
-python3 run-grammar.py --check   # grammar/state/metadata/search checks
-
-Requires existing SBCL and Wouldwork with ocicl or Quicklisp dependencies. No background
-process is left running; temporary source and ASDF output directories are removed.
+No repository location or Quicklisp installation directory is assumed.
+Python copies Wouldwork; ASDF discovers and loads the Common Lisp systems.
 """
 import argparse
-from setup import lisp_string
 from pathlib import Path
 import shutil
-import subprocess
 import tempfile
+from setup import lisp_string, run
+
+
+def discover(project, executable, args, temporary):
+    """Ask SBCL/ASDF for sources; never evaluate the installed Wouldwork .asd."""
+    initializer = args.dependency_setup or args.quicklisp
+    local_loader = project / '.deps/load.lisp'
+    initialization = (f'(load {lisp_string(initializer.expanduser().resolve())})' if initializer else
+                      f'(load {lisp_string(local_loader)})' if local_loader.is_file() else '')
+    override = (f'(setf clds-demo:*wouldwork-source* #p{lisp_string(str(args.wouldwork.expanduser().resolve()) + "/")})'
+                if args.wouldwork else '')
+    entry = temporary / 'discover.lisp'
+    entry.write_text(f'''
+(require :asdf)
+(asdf:initialize-output-translations
+ '(:output-translations (t {lisp_string(str(temporary / 'discovery-fasl') + '/')}) :ignore-inherited-configuration))
+{initialization}
+(asdf:load-asd {lisp_string(project / 'declarative-analysis.asd')})
+(asdf:load-system "declarative-analysis")
+{override}
+(clds-demo::emit-worker-arguments)
+''', encoding='utf-8')
+    output = run([executable, '--noinform', '--no-sysinit', '--no-userinit', '--non-interactive',
+                  '--load', str(entry)], capture=True, timeout=60)
+    marker = 'CLDS-WORKER-ARGV\n'
+    if marker not in output or 'CLDS-WORKER-ARGV-END\0' not in output:
+        raise RuntimeError(f'ASDF source discovery did not complete:\n{output}')
+    values = output.split(marker, 1)[1].split('\0CLDS-WORKER-ARGV-END', 1)[0].split('\0')
+    source = Path(values[values.index('--wouldwork') + 1])
+    directories = [Path(values[index + 1]) for index, value in enumerate(values)
+                   if value == '--source-directory']
+    return source, directories
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--check', action='store_true')
-    parser.add_argument('--request', type=Path, help='Data-only Lisp request file')
-    parser.add_argument('--result', type=Path, help='Data-only Lisp result file')
-    parser.add_argument('--wouldwork', type=Path,
-                        default=(Path(__file__).resolve().parent / '.deps/wouldwork'
-                                 if (Path(__file__).resolve().parent / '.deps/wouldwork/wouldwork.asd').is_file()
-                                 else Path.home() / 'projects/cl/wouldwork'))
-    dependency_options = parser.add_mutually_exclusive_group()
-    dependency_options.add_argument('--dependency-setup', type=Path,
-                        help='Worker-only dependency initializer (ocicl); overrides Quicklisp')
-    dependency_options.add_argument('--quicklisp', type=Path,
-                                    help='Explicit Quicklisp fallback instead of ocicl')
+    parser.add_argument('--request', type=Path)
+    parser.add_argument('--result', type=Path)
+    parser.add_argument('--wouldwork', type=Path, help='Explicit source override; otherwise locate with ASDF')
+    parser.add_argument('--source-directory', type=Path, action='append',
+                        help='Resolved ASDF library directory; normally supplied by the Lisp caller')
+    initialization = parser.add_mutually_exclusive_group()
+    initialization.add_argument('--dependency-setup', type=Path, help='Optional ASDF registry initializer')
+    initialization.add_argument('--quicklisp', type=Path, help='Optional explicit Quicklisp initializer')
     parser.add_argument('--sbcl', default='sbcl')
     args = parser.parse_args()
     if bool(args.request) != bool(args.result) or (args.check and args.request):
         parser.error('--request and --result must be supplied together, without --check.')
     executable = shutil.which(args.sbcl)
+    if not executable:
+        parser.error('Install SBCL or pass --sbcl with its executable path.')
     project = Path(__file__).resolve().parent
-    source = args.wouldwork.expanduser().resolve()
-    quicklisp = (args.quicklisp or Path.home() / 'quicklisp/setup.lisp').expanduser().resolve()
-    local_setup = project / '.deps/dependencies.lisp'
-    dependency_setup = (args.dependency_setup or
-                        (local_setup if not args.quicklisp and local_setup.is_file() else None))
-    if dependency_setup:
-        dependency_setup = dependency_setup.expanduser().resolve()
-    if executable is None or not (source / 'wouldwork.asd').is_file():
-        parser.error('Specify existing SBCL and Wouldwork installations, or run setup.sh.')
-    if not (dependency_setup or quicklisp).is_file():
-        parser.error('Run setup.sh, or specify an existing dependency initializer/Quicklisp setup.')
-    dependencies = (f'(load {lisp_string(str(dependency_setup))})' if dependency_setup else
-                    f'(load {lisp_string(str(quicklisp))})\n'
-                    '(ql:quickload \'(:alexandria :iterate :lparallel) :silent t)')
     with tempfile.TemporaryDirectory(prefix='clds-grammar-runtime-') as temporary:
         root = Path(temporary)
+        if args.source_directory and args.wouldwork:
+            source = args.wouldwork.expanduser().resolve()
+            directories = [path.expanduser().resolve() for path in args.source_directory]
+        else:
+            source, directories = discover(project, executable, args, root)
+        if not (source / 'wouldwork.asd').is_file():
+            parser.error('ASDF must locate a Wouldwork source checkout with wouldwork.asd.')
         runtime = root / 'wouldwork'
         runtime.mkdir()
         shutil.copyfile(source / 'wouldwork.asd', runtime / 'wouldwork.asd')
         shutil.copytree(source / 'src', runtime / 'src',
                         ignore=shutil.ignore_patterns('*.fasl', 'problem.lisp'))
         (runtime / '.clds-isolated-runtime').write_text('Temporary CLDS grammar runtime.\n')
-        bootstrap = root / 'bootstrap.lisp'
+        registry = ' '.join(f'(:directory {lisp_string(str(path) + "/")})' for path in directories)
         entry = project / ('tests/checks.lisp' if args.check else 'interface/grammar-demo.lisp')
-        entry_form = (f'(clds-example::run-planner-request '
-                      f'{lisp_string(str(args.request.resolve()))} '
-                      f'{lisp_string(str(args.result.resolve()))})'
-                      if args.request else f'(load {lisp_string(str(entry))})')
+        entry_form = (f'(clds-demo::run-planner-request {lisp_string(args.request.resolve())} '
+                      f'{lisp_string(args.result.resolve())})' if args.request else
+                      f'(load {lisp_string(entry)})')
+        bootstrap = root / 'bootstrap.lisp'
         bootstrap.write_text(f'''
 (require :asdf)
 (asdf:initialize-output-translations
  '(:output-translations (t {lisp_string(str(root / 'fasl') + '/')}) :ignore-inherited-configuration))
-{dependencies}
-(asdf:load-asd {lisp_string(str(runtime / 'wouldwork.asd'))})
-(asdf:load-system :wouldwork)
+(asdf:initialize-source-registry '(:source-registry {registry} :ignore-inherited-configuration))
+(asdf:load-asd {lisp_string(runtime / 'wouldwork.asd')})
+(asdf:load-system "wouldwork")
 (assert (zerop (symbol-value (find-symbol "*THREADS*" "WOULDWORK"))))
-(asdf:load-asd {lisp_string(str(project / 'declarative-analysis.asd'))})
+(asdf:load-asd {lisp_string(project / 'declarative-analysis.asd')})
 (asdf:load-system "declarative-analysis")
-(setf clds-example::*wouldwork-isolated-root* #p{lisp_string(str(runtime) + '/')})
+(setf clds-demo::*wouldwork-isolated-root* #p{lisp_string(str(runtime) + '/')})
 {entry_form}
 (format t "~&GRAMMAR-RUN-COMPLETED~%")
-''')
-        process = subprocess.Popen(
-            [executable, '--noinform', '--no-sysinit', '--no-userinit',
-             '--non-interactive', '--load', str(bootstrap)],
-            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
-            cwd=dependency_setup.parent if dependency_setup else None)
-        try:
-            output, _ = process.communicate(timeout=60)
-        except BaseException:
-            process.kill()
-            process.communicate()
-            raise
-        if process.returncode or 'GRAMMAR-RUN-COMPLETED' not in output:
-            raise SystemExit(output)
-        # Keep user output legible while preserving diagnostics on failure.
-        marker = '=== GRAMMAR CHECKS ===' if args.check else 'Configuration sheet:'
-        start = output.find(marker)
+''', encoding='utf-8')
+        output = run([executable, '--noinform', '--no-sysinit', '--no-userinit', '--non-interactive',
+                      '--load', str(bootstrap)], capture=True, timeout=60)
+        if 'GRAMMAR-RUN-COMPLETED' not in output:
+            raise RuntimeError(output)
         if not args.request:
+            marker = '=== GRAMMAR CHECKS ===' if args.check else 'Configuration sheet:'
+            start = output.find(marker)
             print(output[start:] if start >= 0 else output)
     if not args.request:
         print('Temporary Wouldwork runtime removed; child process exited.')
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except (RuntimeError, OSError) as error:
+        raise SystemExit(str(error))

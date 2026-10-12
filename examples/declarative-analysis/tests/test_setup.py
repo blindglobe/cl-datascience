@@ -57,11 +57,26 @@ class SetupChecks(unittest.TestCase):
             self.assertFalse(setup.usable_ocicl('ocicl'))
         with patch.object(setup, 'run', side_effect=RuntimeError('saved image mismatch')):
             self.assertFalse(setup.usable_ocicl('ocicl'))
-        with patch.object(setup, 'run', return_value='ocicl version: v2.17.0'):
+        with patch.object(setup, 'run', return_value='ocicl version: v2.20.0'):
             self.assertTrue(setup.usable_ocicl('ocicl'))
 
     def test_paths_remain_literal_lisp_data(self):
         self.assertEqual('"a \\"quoted\\" path\\\\é"', setup.lisp_string('a "quoted" path\\é'))
+
+    def test_generated_loader_uses_relative_asdf_registration(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            project = root / 'example anywhere'
+            prefix = root / 'libraries anywhere'
+            wouldwork = root / 'another location' / 'wouldwork'
+            prefix.mkdir()
+            loader = setup.configure_loader(project, prefix, wouldwork)
+            text = loader.read_text() + (prefix / 'dependencies.lisp').read_text()
+            self.assertIn('(asdf:load-system "declarative-analysis")', text)
+            self.assertIn('another location/wouldwork/', text)
+            self.assertNotIn(str(root), text)
+            self.assertNotIn('clds-demo:*wouldwork-source*', text)
+            self.assertNotIn('clds-demo:*dependency-setup*', text)
 
     def test_reject_bad_options_before_any_os_installation(self):
         result = subprocess.run(['bash', str(PROJECT / 'setup.sh'), '--install-system', '--typo'],

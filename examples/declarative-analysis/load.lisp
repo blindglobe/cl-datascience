@@ -3,5 +3,7 @@
 (require :asdf)
 (let ((directory (uiop:pathname-directory-pathname
                   (or *load-truename* (error "Load this file with LOAD.")))))
+  (let ((registry (probe-file (merge-pathnames ".deps/dependencies.lisp" directory))))
+    (when registry (load registry)))
   (asdf:load-asd (merge-pathnames "declarative-analysis.asd" directory))
   (asdf:load-system "declarative-analysis"))

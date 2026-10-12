@@ -106,8 +106,9 @@ isolated subprocess per request; it does not load or replace the caller's
 Wouldwork domain. Worker results use versioned data-only S-expressions, with
 reader evaluation disabled. Symbolic labels cross the boundary by name, matching
 the current category vocabulary. If the worker fails, the parent retains its
-previous study state. Paths can be configured through the exported backend
-variables documented in README.md.
+previous study state. Wouldwork and transitive library directories come from ASDF source discovery;
+no collaborator-specific repository layout is assumed. See SETUP.md for
+registering systems installed in arbitrary directories.
 
 Every suggestion stays conditional: rule review, numerical qualification,
 variance/sample-size assessment, and applicable model premises remain explicit
