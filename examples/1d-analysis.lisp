@@ -92,17 +92,22 @@
 
 ;; then what could the code look like to analyse them....?
 
-;; considering side-effects which act on data through a data analysis strategy to create a report:
+;; considering side-effects which act on data through a data analysis
+;; strategy to create a report:
 
 (acknowledge/approve-activity :ask-boss T
 			      :ask-finance nil
-			      :need-resources (list (time 5 hours) (external-costs 0 chf)))
+			      :need-resources (list (time 5 hours) 
+						    (external-costs 0 chf)))
 (plan-activity :name "musical stanza analysis" 
-	       :data-sources (music :table (musical-patterns 'stanza) :database (music-colllections 1)))
+	       :data-sources (music :table (musical-patterns 'stanza) 
+				    :database (music-colllections 1)))
 (execute-activity (list (collect :data 'dataset-1d-categorical)
 			(quality-check plan data)
 			(analyse-data :using plan)))
-(store-analysis music-stanza-activity 'some-valid-URI-data-science-activity-repository)
+(store-analysis
+     music-stanza-activity
+     'some-valid-URI-data-science-activity-repository)
 (report-analysis music-stanza-activity
 		 :title "type of music that was played based on stanza pattern"
 		 :report-target 'Shiny)
