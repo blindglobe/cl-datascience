@@ -24,10 +24,27 @@ Our grammar uses `configure`, `check`, `propose`, `approve`, and `report` on a
 study object. These spellings can evolve independently of the reference expression.
 The runtime currently produces proposals only.
 
+## Setup on a new machine
+
+Use ocicl for project-local, locked dependencies. See [SETUP.md](SETUP.md)
+for macOS/Linux prerequisites, installation locations and custom paths.
+With Homebrew available on macOS, or a supported Linux package manager:
+
+```sh
+bash examples/declarative-analysis/setup.sh --install-system --test
+sbcl --load examples/declarative-analysis/.deps/load.lisp
+```
+
+The script installs OS tools when explicitly requested, restores the committed
+`ocicl.csv`, and fetches a pinned Wouldwork checkout. It reuses a working ocicl
+2.17.0+ or builds one locally. Quicklisp is optional. Setup and tests are
+synchronous; loading the package performs no installation.
+
 ## Files that exist now
 
 | File | Responsibility |
 |---|---|
+| `SETUP.md`, `setup.sh`, `setup.py`, `ocicl.csv` | Fresh-machine setup and locked Lisp dependencies |
 | `GRAMMAR.md` | Our grammar, revision semantics, and current runtime limits |
 | `AGENTS.md` | Implementation instructions and scientific constraints |
 | `declarative-analysis.asd`, `load.lisp`, `src/` | Loadable mini package, CLOS grammar, fixtures, isolated Wouldwork adapter |
@@ -122,14 +139,17 @@ configure its aspects; see [GRAMMAR.md](GRAMMAR.md).
 ## Planner prerequisites and isolation
 
 A proposal request uses Python 3 to launch a temporary SBCL process with an
-isolated copy of an existing Wouldwork checkout. It needs existing Quicklisp
-and the installed `alexandria`, `iterate`, and `lparallel` dependencies. Nothing
-is installed by the package. Defaults match the local project layout; override
+isolated copy of an existing Wouldwork checkout. The setup script installs
+`alexandria`, `iterate`, `lparallel` and their dependencies through ocicl. The
+worker loads `.deps/dependencies.lisp`; the caller's Lisp image does not load
+ocicl or Wouldwork. Existing Quicklisp installations remain a fallback when
+`*dependency-setup*` is NIL. Nothing is installed by loading the package.
+After default setup, paths are discovered automatically; otherwise override
 these special variables before calling `propose` if necessary:
 
 ```lisp
 (setf clds-demo:*wouldwork-source* #p"/path/to/wouldwork/"
-      clds-demo:*quicklisp-setup* #p"/path/to/quicklisp/setup.lisp"
+      clds-demo:*dependency-setup* #p"/path/to/dependencies.lisp"
       clds-demo:*planner-sbcl* "sbcl"
       clds-demo:*planner-python* "python3")
 ```
@@ -165,7 +185,8 @@ python3 examples/declarative-analysis/run-grammar.py
 python3 examples/declarative-analysis/run-grammar.py --check
 ```
 
-The runner accepts `--wouldwork`, `--quicklisp`, and `--sbcl` paths. The full
+The runner accepts `--wouldwork`, `--dependency-setup`, `--quicklisp`, and
+`--sbcl` paths. An explicit `--quicklisp` selects the fallback. The full
 demonstration configures a goal, checks the study, finds paired-analysis routes,
 records an explicit selection, and demonstrates stale selections after edits.
 

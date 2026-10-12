@@ -207,6 +207,12 @@ configured object. Ordinary REPL proposals use the synchronous Python launcher
 and an isolated SBCL worker. Do not move Wouldwork into the caller's Lisp image
 or remove worker cleanup. Keep data transport versioned and reader evaluation
 disabled. `asdf:test-system` runs domain and REPL integration checks.
+`setup.sh`/`setup.py` install locked ocicl dependencies under `.deps/`, with a
+pinned Wouldwork checkout. System package installation requires the explicit
+`--install-system` flag. Never install by loading the Lisp package, edit startup
+files, reset dependency checkout changes, or weaken TLS verification. Keep the
+committed `ocicl.csv` and worker dependency initialization in sync. Installer
+checks run with Python's standard-library unittest framework.
 Rules remain draft, numerical execution is not implemented, and the full
 statistical equivalence/precision contracts are not qualified. Keep those
 boundaries visible. Do not call the proposal report a computed analysis report.

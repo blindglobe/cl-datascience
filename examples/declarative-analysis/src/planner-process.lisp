@@ -2,10 +2,21 @@
 (in-package :clds-example)
 
 (defparameter *wouldwork-source*
-  (merge-pathnames "projects/cl/wouldwork/" (user-homedir-pathname))
+  (let ((local (asdf:system-relative-pathname "declarative-analysis" ".deps/wouldwork/")))
+    (if (probe-file (merge-pathnames "wouldwork.asd" local)) local
+        (merge-pathnames "projects/cl/wouldwork/" (user-homedir-pathname))))
   "Existing Wouldwork source checkout, copied for each proposal request.")
 (defparameter *quicklisp-setup*
   (merge-pathnames "quicklisp/setup.lisp" (user-homedir-pathname)))
+(defparameter *dependency-setup*
+  (probe-file (asdf:system-relative-pathname "declarative-analysis" ".deps/dependencies.lisp"))
+  "Worker-only dependency initializer; NIL uses the optional Quicklisp fallback.")
+
+(defun worker-dependency-arguments ()
+  (if *dependency-setup*
+      (list "--dependency-setup" (namestring (pathname *dependency-setup*)))
+      (list "--quicklisp" (namestring (pathname *quicklisp-setup*)))))
+
 (defparameter *planner-sbcl* "sbcl")
 (defparameter *planner-python* "python3")
 
@@ -52,12 +63,11 @@
       (write-message (planner-request object) request)
       (multiple-value-bind (output errors status)
           (uiop:run-program
-           (list *planner-python*
+           (append (list *planner-python*
                  (namestring (asdf:system-relative-pathname "declarative-analysis" "run-grammar.py"))
                  "--request" (namestring request) "--result" (namestring result)
                  "--wouldwork" (namestring (pathname *wouldwork-source*))
-                 "--quicklisp" (namestring (pathname *quicklisp-setup*))
-                 "--sbcl" *planner-sbcl*)
+                 "--sbcl" *planner-sbcl*) (worker-dependency-arguments))
            :output :string :error-output :output :ignore-error-status t)
         (declare (ignore errors))
         (unless (eql status 0)

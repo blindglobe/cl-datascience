@@ -4,10 +4,10 @@
 (defun run-package-checks ()
   "Run the existing isolated domain suite and ordinary-REPL integration checks."
   (uiop:run-program
-   (list *planner-python*
+   (append (list *planner-python*
          (namestring (asdf:system-relative-pathname "declarative-analysis" "run-grammar.py"))
          "--check" "--wouldwork" (namestring (pathname *wouldwork-source*))
-         "--quicklisp" (namestring (pathname *quicklisp-setup*)) "--sbcl" *planner-sbcl*)
+         "--sbcl" *planner-sbcl*) (worker-dependency-arguments))
    :output t :error-output :output)
   (let* ((object (demo))
          (package-before *package*)

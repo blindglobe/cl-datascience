@@ -1,7 +1,7 @@
 ;;; Copyright (c) 2026 Gwang Jin Kim. SPDX-License-Identifier: MIT.
 (asdf:defsystem "declarative-analysis"
   :description "Experimental study grammar with isolated Wouldwork proposals"
-  :version "0.2.0" :license "MIT" :depends-on ("uiop") :serial t
+  :version "0.3.0" :license "MIT" :depends-on ("uiop") :serial t
   :in-order-to ((asdf:test-op (asdf:test-op "declarative-analysis/tests")))
   :components ((:file "src/package") (:file "src/grammar")
                (:file "src/fixtures") (:file "src/demo")

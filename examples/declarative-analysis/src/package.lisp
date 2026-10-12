@@ -5,5 +5,5 @@
   (:export #:study #:dataset #:goal #:design #:measurements #:assumptions
            #:configure #:configuration-sheet #:check #:propose #:approve #:report
            #:revision #:proposals #:approvals #:history #:dataset-table
-           #:demo #:*wouldwork-source* #:*quicklisp-setup*
+           #:demo #:*wouldwork-source* #:*quicklisp-setup* #:*dependency-setup*
            #:*planner-sbcl* #:*planner-python* #:*example-study*))
