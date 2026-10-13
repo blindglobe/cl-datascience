@@ -3,6 +3,13 @@
 ## [Unreleased]
 
 ### Added
+- Example 02 cars as a planning problem: the purpose (trend, inference,
+  prediction) is part of the question. A trend needs only ols-fit;
+  inference offers robust-se and, with assume-constant-spread,
+  classical-se; after a check finds growing spread only robust-se and the
+  spread-model prediction interval remain. Domain: ols-fit, classical-se,
+  robust-se, normal-prediction-interval, spread-model-prediction-interval,
+  assume-constant-spread.
 - Example 01 sleep as a planning problem: nothing declared gives
   assume-rows-independent then welch-t-test (R's default, assumption
   shown); declared independence gives welch-t-test; declared pairing gives

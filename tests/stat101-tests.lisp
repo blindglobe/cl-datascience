@@ -75,3 +75,34 @@ EXPECTED-PLANS (compared as sets; see NORMALIZE-PLANS)."
   (plans-for ("01-sleep" :repeated :difference)
     ((paired-t-test extra group id))
     ((signed-rank-test extra group id))))
+
+;;; 02 cars: one regression, three purposes
+
+(test cars-trend-needs-no-assumption
+  ;; The slope as an average trend needs neither independence nor
+  ;; constant spread.
+  (plans-for ("02-cars" :plain :trend)
+    ((ols-fit dist speed))))
+
+(test cars-inference-offers-both-standard-errors-with-their-assumptions
+  (plans-for ("02-cars" :plain :inference)
+    ((assume-rows-independent cars) (ols-fit dist speed) (robust-se cars dist speed))
+    ((assume-rows-independent cars) (ols-fit dist speed)
+     (assume-constant-spread dist speed) (classical-se cars dist speed)))
+  (plans-for ("02-cars" :independent :inference)
+    ((ols-fit dist speed) (robust-se cars dist speed))
+    ((ols-fit dist speed) (assume-constant-spread dist speed) (classical-se cars dist speed))))
+
+(test cars-after-the-spread-check-only-robust-inference-remains
+  ;; A check found the spread growing with speed: the classical standard
+  ;; error is no longer a plan.
+  (plans-for ("02-cars" :spread-checked :inference)
+    ((assume-rows-independent cars) (ols-fit dist speed) (robust-se cars dist speed))))
+
+(test cars-prediction-needs-a-model-of-the-spread
+  (plans-for ("02-cars" :plain :prediction)
+    ((assume-rows-independent cars) (ols-fit dist speed)
+     (assume-constant-spread dist speed) (normal-prediction-interval cars dist speed)))
+  (plans-for ("02-cars" :spread-checked :prediction)
+    ((assume-rows-independent cars) (ols-fit dist speed)
+     (spread-model-prediction-interval cars dist speed))))

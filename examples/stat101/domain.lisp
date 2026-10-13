@@ -40,6 +40,9 @@
   ;; how the rows relate
   (rows-independent frame)
   (repeated-by> frame variable variable)   ; (repeated-by> f id within): each id seen under every level of within
+  ;; spread of y around its trend in x (declared, or observed by a check)
+  (constant-spread> variable variable)
+  (nonconstant-spread> variable variable)
   ;; how the values came about
   (random-process variable)
   (known-pattern variable)
@@ -48,6 +51,9 @@
   (predicted-next variable)
   (estimated-probabilities variable)
   (estimated-difference> variable variable) ; (estimated-difference> outcome groups)
+  (estimated-trend> variable variable)      ; (estimated-trend> y x): average linear trend
+  (inferred-trend> variable variable)       ; ... with standard error, test, interval
+  (prediction-interval> variable variable)  ; ... interval for a new y at given x
   ;; record
   (used method))
 
@@ -115,6 +121,53 @@
        (not (estimated-difference> ?y ?g)))
   (?y ?g ?id)
   (assert (estimated-difference> ?y ?g) (used signed-rank-test)))
+
+;;; Regression: one fit, three purposes. What each output needs:
+;;; trend - nothing beyond the fit; inference - independent rows, and
+;;; constant spread for the classical standard error; prediction -
+;;; independent rows and a model of the spread.
+
+(define-action ols-fit 1                       ; R's lm(y ~ x)
+  (product ?y variable ?x variable)
+  (and (continuous ?y) (continuous ?x) (not (eql ?y ?x))
+       (not (estimated-trend> ?y ?x)))
+  (?y ?x)
+  (assert (estimated-trend> ?y ?x) (used ols-fit)))
+
+(define-action classical-se 1                  ; summary(lm): needs constant spread
+  (product ?f frame ?y variable ?x variable)
+  (and (estimated-trend> ?y ?x) (rows-independent ?f) (constant-spread> ?y ?x)
+       (not (inferred-trend> ?y ?x)))
+  (?f ?y ?x)
+  (assert (inferred-trend> ?y ?x) (used classical-se)))
+
+(define-action robust-se 1                     ; heteroscedasticity-consistent (HC3)
+  (product ?f frame ?y variable ?x variable)
+  (and (estimated-trend> ?y ?x) (rows-independent ?f)
+       (not (inferred-trend> ?y ?x)))
+  (?f ?y ?x)
+  (assert (inferred-trend> ?y ?x) (used robust-se)))
+
+(define-action normal-prediction-interval 1    ; predict(..., interval = "prediction")
+  (product ?f frame ?y variable ?x variable)
+  (and (estimated-trend> ?y ?x) (rows-independent ?f) (constant-spread> ?y ?x)
+       (not (prediction-interval> ?y ?x)))
+  (?f ?y ?x)
+  (assert (prediction-interval> ?y ?x) (used normal-prediction-interval)))
+
+(define-action spread-model-prediction-interval 1   ; spread modelled as a function of x
+  (product ?f frame ?y variable ?x variable)
+  (and (estimated-trend> ?y ?x) (rows-independent ?f) (nonconstant-spread> ?y ?x)
+       (not (prediction-interval> ?y ?x)))
+  (?f ?y ?x)
+  (assert (prediction-interval> ?y ?x) (used spread-model-prediction-interval)))
+
+(define-action assume-constant-spread 1
+  (product ?y variable ?x variable)
+  (and (estimated-trend> ?y ?x)
+       (not (constant-spread> ?y ?x)) (not (nonconstant-spread> ?y ?x)))
+  (?y ?x)
+  (assert (constant-spread> ?y ?x) (used assume-constant-spread)))
 
 ;;; Assumptions about how rows relate
 
