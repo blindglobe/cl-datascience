@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 ### Added
+- docs/VERBS.md: the verbs in three layers (project verbs from
+  1d-analysis.lisp, question verbs as planner goals, method actions chosen
+  by the planner), how optional declarations work, plan-run-replan, open
+  questions. examples/stat101/README.md: layout, how to run, catalogue,
+  findings. README.md: a section on the examples and the test suite.
 - Example 05 faithful as a planning problem: after a check finds two
   modes, describe-by-modes replaces describe-continuous; declaring rows as
   time-ordered removes the independence assumption and leaves ols-fit
