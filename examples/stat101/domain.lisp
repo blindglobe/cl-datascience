@@ -40,6 +40,11 @@
   ;; how the rows relate
   (rows-independent frame)
   (repeated-by> frame variable variable)   ; (repeated-by> f id within): each id seen under every level of within
+  ;; how a variable came about, and when it was measured
+  (set-by-design variable)                 ; chosen by the investigator
+  (randomized variable)                    ; assigned by a random mechanism
+  (observed variable)                      ; arose from the process studied
+  (measured-before> variable variable)
   ;; spread of y around its trend in x (declared, or observed by a check)
   (constant-spread> variable variable)
   (nonconstant-spread> variable variable)
@@ -54,6 +59,8 @@
   (estimated-trend> variable variable)      ; (estimated-trend> y x): average linear trend
   (inferred-trend> variable variable)       ; ... with standard error, test, interval
   (prediction-interval> variable variable)  ; ... interval for a new y at given x
+  (explained-by-design> variable variable)  ; effect of a design factor on an outcome
+  (predicted-from> variable variable)       ; prediction only, no causal reading
   ;; record
   (used method))
 
@@ -121,6 +128,38 @@
        (not (estimated-difference> ?y ?g)))
   (?y ?g ?id)
   (assert (estimated-difference> ?y ?g) (used signed-rank-test)))
+
+;;; Design consistency (A.J. Rossini's clinical-trial example: a network
+;;; analysis concluded that the outcome influenced the randomized
+;;; treatment). No state may contain an explanation of a variable that was
+;;; set by design or randomized, or of a variable by one measured after it.
+;;; Prediction (predicted-from>) is not an explanation and stays allowed.
+
+(define-constraint
+  (not (exists ((?y ?x) variable)
+         (and (estimated-trend> ?y ?x)
+              (or (set-by-design ?y)
+                  (randomized ?y)
+                  (measured-before> ?y ?x))))))
+
+;;; Designed experiments
+
+(define-action two-way-anova 1                 ; aov(y ~ a * b), factors as designed
+  (product ?f frame ?y variable ?a variable ?b variable)
+  (and (continuous ?y) (not (set-by-design ?y))
+       (set-by-design ?a) (set-by-design ?b) (not (eql ?a ?b))
+       (rows-independent ?f)
+       (not (explained-by-design> ?y ?a)))
+  (?f ?y ?a ?b)
+  (assert (explained-by-design> ?y ?a) (explained-by-design> ?y ?b)
+          (used two-way-anova)))
+
+(define-action predictive-fit 1                ; a prediction model; no causal reading
+  (product ?y variable ?x variable)
+  (and (continuous ?y) (continuous ?x) (not (eql ?y ?x))
+       (not (predicted-from> ?y ?x)))
+  (?y ?x)
+  (assert (predicted-from> ?y ?x) (used predictive-fit)))
 
 ;;; Regression: one fit, three purposes. What each output needs:
 ;;; trend - nothing beyond the fit; inference - independent rows, and

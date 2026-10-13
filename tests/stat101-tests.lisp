@@ -106,3 +106,27 @@ EXPECTED-PLANS (compared as sets; see NORMALIZE-PLANS)."
   (plans-for ("02-cars" :spread-checked :prediction)
     ((assume-rows-independent cars) (ols-fit dist speed)
      (spread-model-prediction-interval cars dist speed))))
+
+;;; 03 ToothGrowth: design variables and the reversed model
+
+(test toothgrowth-nothing-declared-allows-the-reversed-model
+  ;; Like R, which runs lm(dose ~ len) without complaint.
+  (plans-for ("03-toothgrowth" :plain :dose-from-len)
+    ((ols-fit dose len))))
+
+(test toothgrowth-declared-design-forbids-the-reversed-model
+  ;; dose was set by the investigator, before len was measured: no plan
+  ;; may explain dose by len (a constraint of the domain).
+  (plans-for ("03-toothgrowth" :design :dose-from-len)))
+
+(test toothgrowth-prediction-in-the-reversed-direction-stays-allowed
+  ;; "Which dose did this animal get?" is a legitimate prediction.
+  (plans-for ("03-toothgrowth" :design :predict-dose)
+    ((predictive-fit dose len))))
+
+(test toothgrowth-declared-design-gives-the-designed-analysis
+  (plans-for ("03-toothgrowth" :design :effects)
+    ((two-way-anova toothgrowth len supp dose))))
+
+(test toothgrowth-design-effects-need-a-declared-design
+  (plans-for ("03-toothgrowth" :plain :effects)))

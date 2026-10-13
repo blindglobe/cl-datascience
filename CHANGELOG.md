@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 ### Added
+- Example 03 ToothGrowth as a planning problem, with the first domain
+  constraint (design consistency): once dose is declared set by design and
+  measured before len, no plan may explain dose by len; prediction in that
+  direction stays allowed; the declared design gives two-way-anova.
+  Domain: two-way-anova, predictive-fit, relations for origin and timing.
 - Example 02 cars as a planning problem: the purpose (trend, inference,
   prediction) is part of the question. A trend needs only ols-fit;
   inference offers robust-se and, with assume-constant-spread,
