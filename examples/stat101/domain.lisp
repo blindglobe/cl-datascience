@@ -37,9 +37,12 @@
   (categorical variable)
   (continuous variable)
   (two-levels variable)
+  (binary variable)
   ;; how the rows relate
   (rows-independent frame)
   (repeated-by> frame variable variable)   ; (repeated-by> f id within): each id seen under every level of within
+  (frequency-weights frame variable)       ; one row per cell, the variable counts cases
+  (one-row-per-case frame)
   ;; how a variable came about, and when it was measured
   (set-by-design variable)                 ; chosen by the investigator
   (randomized variable)                    ; assigned by a random mechanism
@@ -61,6 +64,9 @@
   (prediction-interval> variable variable)  ; ... interval for a new y at given x
   (explained-by-design> variable variable)  ; effect of a design factor on an outcome
   (predicted-from> variable variable)       ; prediction only, no causal reading
+  (estimated-total-effect> variable variable)
+  (estimated-direct-effect> variable variable) ; effect not passing through a later variable
+  (common-odds-ratio> variable variable)    ; the same odds ratio in every stratum
   ;; record
   (used method))
 
@@ -160,6 +166,50 @@
        (not (predicted-from> ?y ?x)))
   (?y ?x)
   (assert (predicted-from> ?y ?x) (used predictive-fit)))
+
+;;; Binary outcome, two groups: which effect is asked for. A total effect
+;;; includes paths through later variables; a direct effect holds a
+;;; variable fixed that lies between exposure and outcome in time.
+
+(define-action pooled-odds-ratio 1             ; 2x2 table over everything
+  (product ?f frame ?y variable ?x variable)
+  (and (binary ?y) (two-levels ?x)
+       (or (one-row-per-case ?f) (exists (?w variable) (frequency-weights ?f ?w)))
+       (not (estimated-total-effect> ?y ?x)))
+  (?f ?y ?x)
+  (assert (estimated-total-effect> ?y ?x) (used pooled-odds-ratio)))
+
+(define-action mantel-haenszel 1               ; mantelhaen.test: one common odds ratio
+  (product ?f frame ?y variable ?x variable ?z variable)
+  (and (binary ?y) (two-levels ?x) (categorical ?z)
+       (measured-before> ?x ?z) (measured-before> ?z ?y)
+       (common-odds-ratio> ?y ?x)
+       (or (one-row-per-case ?f) (exists (?w variable) (frequency-weights ?f ?w)))
+       (not (estimated-direct-effect> ?y ?x)))
+  (?f ?y ?x ?z)
+  (assert (estimated-direct-effect> ?y ?x) (used mantel-haenszel)))
+
+(define-action logistic-by-stratum 1           ; glm(y ~ x * z): an effect per stratum
+  (product ?f frame ?y variable ?x variable ?z variable)
+  (and (binary ?y) (two-levels ?x) (categorical ?z)
+       (measured-before> ?x ?z) (measured-before> ?z ?y)
+       (or (one-row-per-case ?f) (exists (?w variable) (frequency-weights ?f ?w)))
+       (not (estimated-direct-effect> ?y ?x)))
+  (?f ?y ?x ?z)
+  (assert (estimated-direct-effect> ?y ?x) (used logistic-by-stratum)))
+
+(define-action assume-common-odds-ratio 1
+  (product ?y variable ?x variable)
+  (and (binary ?y) (two-levels ?x) (not (common-odds-ratio> ?y ?x)))
+  (?y ?x)
+  (assert (common-odds-ratio> ?y ?x) (used assume-common-odds-ratio)))
+
+(define-action assume-one-row-per-case 1       ; R's default for a data frame
+  (?f frame)
+  (and (not (one-row-per-case ?f))
+       (not (exists (?w variable) (frequency-weights ?f ?w))))
+  (?f)
+  (assert (one-row-per-case ?f) (used assume-one-row-per-case)))
 
 ;;; Regression: one fit, three purposes. What each output needs:
 ;;; trend - nothing beyond the fit; inference - independent rows, and

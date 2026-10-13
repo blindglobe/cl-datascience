@@ -3,6 +3,13 @@
 ## [Unreleased]
 
 ### Added
+- Example 04 UCBAdmissions as a planning problem: without declared counts
+  the plan assumes one row per applicant; the estimand is the goal (total
+  effect: pooled-odds-ratio; direct effect: mantel-haenszel with
+  assume-common-odds-ratio, or logistic-by-stratum), and the direct effect
+  has no plan until the order of events places the department between
+  gender and admission. Domain: these four methods and
+  assume-one-row-per-case.
 - Example 03 ToothGrowth as a planning problem, with the first domain
   constraint (design consistency): once dose is declared set by design and
   measured before len, no plan may explain dose by len; prediction in that

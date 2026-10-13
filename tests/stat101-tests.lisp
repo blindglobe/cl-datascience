@@ -130,3 +130,29 @@ EXPECTED-PLANS (compared as sets; see NORMALIZE-PLANS)."
 
 (test toothgrowth-design-effects-need-a-declared-design
   (plans-for ("03-toothgrowth" :plain :effects)))
+
+;;; 04 UCBAdmissions: counts, and which effect is asked for
+
+(test ucb-counts-must-be-declared-or-the-plan-assumes-one-row-per-applicant
+  ;; Nothing declared: 24 rows would be read as 24 applicants - the plan
+  ;; says so instead of doing it silently.
+  (plans-for ("04-ucb-admissions" :plain :total-effect)
+    ((assume-one-row-per-case ucb) (pooled-odds-ratio ucb admit gender)))
+  (plans-for ("04-ucb-admissions" :counts :total-effect)
+    ((pooled-odds-ratio ucb admit gender))))
+
+(test ucb-direct-effect-needs-the-order-of-events
+  ;; Without knowing that the department is chosen between gender and the
+  ;; admission decision, "direct effect" has no plan.
+  (plans-for ("04-ucb-admissions" :counts :direct-effect)))
+
+(test ucb-direct-effect-stratifies-by-department
+  ;; Mantel-Haenszel assumes one common odds ratio across departments;
+  ;; the logistic model with a gender-by-department term does not.
+  (plans-for ("04-ucb-admissions" :timing :direct-effect)
+    ((assume-common-odds-ratio admit gender) (mantel-haenszel ucb admit gender dept))
+    ((logistic-by-stratum ucb admit gender dept))))
+
+(test ucb-total-effect-stays-pooled-when-the-timing-is-known
+  (plans-for ("04-ucb-admissions" :timing :total-effect)
+    ((pooled-odds-ratio ucb admit gender))))
