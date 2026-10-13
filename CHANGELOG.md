@@ -3,6 +3,12 @@
 ## [Unreleased]
 
 ### Added
+- Example 00 one variable, as a planning problem: `plan.lisp` (objects,
+  facts, states of knowledge, questions), `wish.lisp` and README. The
+  shared method actions start in `examples/stat101/domain.lisp`
+  (describe, next value). `load-example` and `example-plans`
+  (src/examples.lisp) read an example and plan one question under one
+  state of knowledge.
 - R references for six Statistics 101 examples (examples/stat101/): one
   variable (A.J. Rossini's two datasets from examples/1d-analysis.lisp),
   sleep, cars, ToothGrowth, UCBAdmissions, faithful. Each `reference.R`
