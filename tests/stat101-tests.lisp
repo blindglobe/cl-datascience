@@ -57,3 +57,21 @@ EXPECTED-PLANS (compared as sets; see NORMALIZE-PLANS)."
   (plans-for ("00-one-variable" :pattern-known :stanza-probabilities))
   (plans-for ("00-one-variable" :plain :stanza-probabilities)
     ((assume-random-process stanza) (estimate-category-probabilities stanza))))
+
+;;; 01 sleep: two drugs, ten patients
+
+(test sleep-nothing-declared-gives-welch-and-says-what-it-assumes
+  ;; R's t.test(extra ~ group): Welch, rows taken as independent.
+  (plans-for ("01-sleep" :plain :difference)
+    ((assume-rows-independent sleep) (welch-t-test extra group))))
+
+(test sleep-declared-independent-needs-no-assumption
+  (plans-for ("01-sleep" :independent :difference)
+    ((welch-t-test extra group))))
+
+(test sleep-declared-pairing-gives-the-paired-methods
+  ;; Every patient got both drugs: paired t-test, or the signed-rank test
+  ;; as the alternative; Welch is no longer possible.
+  (plans-for ("01-sleep" :repeated :difference)
+    ((paired-t-test extra group id))
+    ((signed-rank-test extra group id))))

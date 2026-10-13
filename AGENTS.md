@@ -43,6 +43,13 @@ which verbs, components and hints are needed.
   bridge registers its folder before every stage.
 - Relations whose arguments share a type are symmetric in wouldwork; use the
   `>` suffix (`estimated-trend>`) for directional relations.
+- Actions with several parameters of one type use the `product` header
+  (`(product ?y variable ?g variable)`). Wouldwork's default instantiates
+  such parameters with distinct objects, and when an example has fewer
+  objects than parameters it fails ("too few elements ... to satisfy
+  lambda list"; `get-pre-lambda-arg-lists` in wouldwork's ww-support.lisp
+  returns a list of empty argument lists). Keep roles apart in the
+  precondition, with `(not (eql ?a ?b))` where they could coincide.
 - Staging writes `src/problem.lisp` and `vals.lisp` inside the wouldwork
   installation that is loaded (Quicklisp's copy for SBCL, a local project
   for Roswell). Do not run two test processes on the same installation at

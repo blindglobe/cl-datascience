@@ -12,6 +12,14 @@
 ;;;;   find-plans with every action name).
 ;;;; - Relations ending in > are directional (wouldwork treats relations
 ;;;;   whose arguments share a type as symmetric unless marked with >).
+;;;; - Actions with several parameters use the product header
+;;;;   ((product ?y variable ?g variable)). Wouldwork's default (standard)
+;;;;   instantiates same-type parameters with distinct objects and fails
+;;;;   ("too few elements ... to satisfy lambda list") when an example has
+;;;;   fewer objects than parameters (wouldwork 2026-01: an empty
+;;;;   instantiation becomes a list of empty argument lists). Preconditions
+;;;;   keep the roles apart, with (not (eql ?a ?b)) where roles could
+;;;;   coincide.
 ;;;; - Every action asserts (used <action>): the final state records which
 ;;;;   methods answered the question.
 ;;;; - Actions named assume-... make an assumption. They are only possible
@@ -28,6 +36,10 @@
   ;; what a variable is (from storage types or declared)
   (categorical variable)
   (continuous variable)
+  (two-levels variable)
+  ;; how the rows relate
+  (rows-independent frame)
+  (repeated-by> frame variable variable)   ; (repeated-by> f id within): each id seen under every level of within
   ;; how the values came about
   (random-process variable)
   (known-pattern variable)
@@ -35,6 +47,7 @@
   (described variable)
   (predicted-next variable)
   (estimated-probabilities variable)
+  (estimated-difference> variable variable) ; (estimated-difference> outcome groups)
   ;; record
   (used method))
 
@@ -79,3 +92,35 @@
   (and (not (random-process ?v)) (not (known-pattern ?v)))
   (?v)
   (assert (random-process ?v) (used assume-random-process)))
+
+;;; Two groups: compare an outcome
+
+(define-action welch-t-test 1                  ; R's t.test(y ~ g)
+  (product ?f frame ?y variable ?g variable)
+  (and (continuous ?y) (two-levels ?g) (rows-independent ?f)
+       (not (estimated-difference> ?y ?g)))
+  (?y ?g)
+  (assert (estimated-difference> ?y ?g) (used welch-t-test)))
+
+(define-action paired-t-test 1
+  (product ?f frame ?y variable ?g variable ?id variable)
+  (and (continuous ?y) (two-levels ?g) (repeated-by> ?f ?id ?g)
+       (not (estimated-difference> ?y ?g)))
+  (?y ?g ?id)
+  (assert (estimated-difference> ?y ?g) (used paired-t-test)))
+
+(define-action signed-rank-test 1              ; Wilcoxon, paired
+  (product ?f frame ?y variable ?g variable ?id variable)
+  (and (continuous ?y) (two-levels ?g) (repeated-by> ?f ?id ?g)
+       (not (estimated-difference> ?y ?g)))
+  (?y ?g ?id)
+  (assert (estimated-difference> ?y ?g) (used signed-rank-test)))
+
+;;; Assumptions about how rows relate
+
+(define-action assume-rows-independent 1       ; R's silent default
+  (?f frame)
+  (and (not (rows-independent ?f))
+       (not (exists ((?a ?b) variable) (repeated-by> ?f ?a ?b))))
+  (?f)
+  (assert (rows-independent ?f) (used assume-rows-independent)))
