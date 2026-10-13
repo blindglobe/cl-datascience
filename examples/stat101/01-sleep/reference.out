@@ -1,0 +1,30 @@
+# R version 4.6.1 (2026-06-24)
+
+## Data
+n_rows                             20
+n_patients                         10
+every_patient_got_both_drugs       TRUE
+mean_extra_by_group                1=0.75  2=2.33
+cor_within_patient                 0.7951702
+
+## A. Pairing ignored: t.test(extra ~ group) (Welch, R's default)
+welch_estimate_1_minus_2           -1.58
+welch_t                            -1.860813
+welch_df                           17.77647
+welch_p                            0.07939414
+welch_ci                           -3.3654832   0.2054832
+
+## B. Pairing used: paired t-test, drug 2 minus drug 1
+paired_estimate_2_minus_1          1.58
+paired_t                           4.062128
+paired_df                          9
+paired_p                           0.00283289
+paired_ci                          0.7001142  2.4598858
+
+## C. Alternative under the same declaration: Wilcoxon signed-rank
+signed_rank_V                      45
+signed_rank_p                      0.009090698
+n_zero_differences                 1
+
+## D. R itself no longer accepts pairing inside the formula
+formula_paired_message             cannot use 'paired' in formula method

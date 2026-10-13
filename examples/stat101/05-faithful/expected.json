@@ -1,0 +1,23 @@
+{
+  "r_version": "R version 4.6.1 (2026-06-24)",
+  "values": {
+    "n_rows": 272,
+    "mean_eruptions": 3.48778308823529,
+    "sd_eruptions": 1.14137125110521,
+    "share_within_half_minute_of_mean": 0.136029411764706,
+    "shapiro_wilk_p": 9.03611899885501e-16,
+    "density_bandwidth": 0.334777034463943,
+    "density_modes": [1.97552948852267, 4.36872520262438],
+    "share_short_eruptions_lt_3min": 0.356617647058824,
+    "mean_eruptions_short_long": {
+      "short": 2.03813402061856,
+      "long": 4.29130285714286
+    },
+    "cor_all": 0.900811168321813,
+    "cor_within_short": 0.290189526492543,
+    "cor_within_long": 0.372782225570751,
+    "slope_waiting_on_eruptions": 10.7296413951335,
+    "lag1_autocorrelation_eruptions": -0.549187800190752,
+    "lag1_autocorrelation_waiting": -0.539380714481073
+  }
+}

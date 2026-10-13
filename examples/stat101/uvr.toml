@@ -1,0 +1,6 @@
+[project]
+name = "cl-datascience-stat101"
+r_version = "==4.6.1"
+
+[dependencies]
+jsonlite = "==2.0.0"

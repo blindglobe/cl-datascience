@@ -1,0 +1,25 @@
+# R version 4.6.1 (2026-06-24)
+
+## Data
+n_rows                             24
+n_applicants                       4526
+
+## A. Pooled over departments
+admit_rate_pooled                  Male=0.4451877  Female=0.3035422
+odds_ratio_male_vs_female_pooled   1.84108
+chisq_pooled_p                     1.055797e-21
+
+## B. Within departments
+admit_rate_male_by_dept            A=0.62060606  B=0.63035714  C=0.36923077  D=0.33093525  E=0.27748691  F=0.05898123
+admit_rate_female_by_dept          A=0.82407407  B=0.68000000  C=0.34064081  D=0.34933333  E=0.23918575  F=0.07038123
+depts_where_women_admitted_more    4
+female_share_of_applicants_by_dept A=0.11575563  B=0.04273504  C=0.64596950  D=0.47348485  E=0.67294521  F=0.47759104
+overall_admit_rate_by_dept         A=0.64415863  B=0.63247863  C=0.35076253  D=0.33964646  E=0.25171233  F=0.06442577
+
+## C. Stratified by department: Mantel-Haenszel
+odds_ratio_male_vs_female_mh       0.9046968
+mh_p                               0.2322635
+
+## D. Is the gender effect the same in every department?
+gender_by_dept_interaction_p       0.001144078
+odds_ratio_female_vs_male_dept_A   2.86359

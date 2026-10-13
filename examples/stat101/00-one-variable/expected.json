@@ -1,0 +1,25 @@
+{
+  "r_version": "R version 4.6.1 (2026-06-24)",
+  "values": {
+    "stanza_n": 6,
+    "stanza_levels": ["A", "B", "C"],
+    "stanza_counts": {
+      "A": 2,
+      "B": 3,
+      "C": 1
+    },
+    "stanza_proportions": {
+      "A": 0.333333333333333,
+      "B": 0.5,
+      "C": 0.166666666666667
+    },
+    "stanza_most_common": "B",
+    "stanza_ci_share_most_common": [0.118117248757025, 0.881882751242975],
+    "pitch_n": 5,
+    "pitch_mean": 0.66,
+    "pitch_sd": 2.21088217686968,
+    "pitch_median": 1,
+    "pitch_ci_mean": [-2.08517280328944, 3.40517280328944],
+    "pitch_prediction_interval_next": [-6.06427262382484, 7.38427262382484]
+  }
+}

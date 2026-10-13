@@ -1,0 +1,27 @@
+{
+  "r_version": "R version 4.6.1 (2026-06-24)",
+  "values": {
+    "n_rows": 20,
+    "n_patients": 10,
+    "every_patient_got_both_drugs": true,
+    "mean_extra_by_group": {
+      "1": 0.75,
+      "2": 2.33
+    },
+    "cor_within_patient": 0.795170205833578,
+    "welch_estimate_1_minus_2": -1.58,
+    "welch_t": -1.86081346748685,
+    "welch_df": 17.7764735161785,
+    "welch_p": 0.0793941401873582,
+    "welch_ci": [-3.36548323071171, 0.20548323071171],
+    "paired_estimate_2_minus_1": 1.58,
+    "paired_t": 4.06212768338204,
+    "paired_df": 9,
+    "paired_p": 0.00283289019738427,
+    "paired_ci": [0.700114236723018, 2.45988576327698],
+    "signed_rank_V": 45,
+    "signed_rank_p": 0.0090906980159251,
+    "n_zero_differences": 1,
+    "formula_paired_message": "cannot use 'paired' in formula method"
+  }
+}

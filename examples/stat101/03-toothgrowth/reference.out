@@ -1,0 +1,19 @@
+# R version 4.6.1 (2026-06-24)
+
+## Data
+n_rows                             60
+animals_per_cell                   10
+mean_len_OJ_by_dose                0.5=13.23  1=22.70  2=26.06
+mean_len_VC_by_dose                0.5= 7.98  1=16.77  2=26.14
+
+## A. The designed analysis: two-way ANOVA, dose as a factor
+anova_F                            supp=15.571979  dose=91.999965  supp:dose= 4.106991
+anova_p                            supp=2.311828e-04  dose=4.046291e-18  supp:dose=2.186027e-02
+
+## B. Dose as a straight line is not enough (lack of fit)
+lack_of_fit_p                      0.00066669
+
+## C. The impossible direction: lm(dose ~ len) also 'works'
+dose_on_len_slope                  0.06599156
+dose_on_len_p                      1.232698e-14
+cor_len_dose                       0.8026913

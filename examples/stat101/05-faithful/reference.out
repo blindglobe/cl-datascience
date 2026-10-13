@@ -1,0 +1,24 @@
+# R version 4.6.1 (2026-06-24)
+
+## A. The usual summary
+n_rows                             272
+mean_eruptions                     3.487783
+sd_eruptions                       1.141371
+share_within_half_minute_of_mean   0.1360294
+shapiro_wilk_p                     9.036119e-16
+
+## B. The distribution has two modes
+density_bandwidth                  0.334777
+density_modes                      1.975529  4.368725
+share_short_eruptions_lt_3min      0.3566176
+mean_eruptions_short_long          short=2.038134  long=4.291303
+
+## C. The strong correlation comes from the two clusters
+cor_all                            0.9008112
+cor_within_short                   0.2901895
+cor_within_long                    0.3727822
+slope_waiting_on_eruptions         10.72964
+
+## D. Row order: is it time order? (the documentation does not say)
+lag1_autocorrelation_eruptions     -0.5491878
+lag1_autocorrelation_waiting       -0.5393807

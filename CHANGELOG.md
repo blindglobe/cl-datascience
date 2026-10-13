@@ -3,6 +3,12 @@
 ## [Unreleased]
 
 ### Added
+- R references for six Statistics 101 examples (examples/stat101/): one
+  variable (A.J. Rossini's two datasets from examples/1d-analysis.lisp),
+  sleep, cars, ToothGrowth, UCBAdmissions, faithful. Each `reference.R`
+  (base R) writes `reference.out`, `expected.json` (the numbers a Lisp
+  version must reproduce, names kept) and its data as CSV. R 4.6.1 and
+  jsonlite are pinned with uvr; `run-references.sh` reruns all.
 - `find-plans` (src/planner.lisp): asks the wouldwork planner for every
   minimal plan that reaches a goal from a set of facts, using a domain file
   of relations and actions. Writes and stages a wouldwork problem, returns

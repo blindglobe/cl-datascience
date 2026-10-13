@@ -1,0 +1,29 @@
+# R version 4.6.1 (2026-06-24)
+
+## Data
+n_rows                             50
+
+## A. Ordinary least squares: lm(dist ~ speed)
+intercept                          -17.57909
+slope                              3.932409
+slope_se_classical                 0.4155128
+slope_p_classical                  1.489836e-12
+slope_ci_classical                 3.096964  4.767853
+r_squared                          0.6510794
+
+## B. Does the spread grow with speed? (residual SD by speed band)
+residual_sd_by_band                4-12= 8.568694  13-18=17.244120  19-25=18.067510
+breusch_pagan_stat                 3.21488
+breusch_pagan_p                    0.07297155
+
+## C. Same slope, heteroscedasticity-robust standard error (HC3)
+slope_se_hc3                       0.4275372
+slope_ci_hc3                       3.072788  4.792030
+
+## D. Prediction intervals assume constant spread
+prediction_interval_speed_5          2.082949  -30.333587   34.499485
+prediction_interval_speed_25        80.73112   48.48730  112.97495
+
+## E. Physics says distance grows with speed squared
+quadratic_coefficients             2.4701378  0.9132876  0.0999593
+quadratic_term_p                   0.1364024
