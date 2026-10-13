@@ -38,11 +38,13 @@
   (continuous variable)
   (two-levels variable)
   (binary variable)
+  (bimodal variable)                       ; observed by a check of the distribution
   ;; how the rows relate
   (rows-independent frame)
   (repeated-by> frame variable variable)   ; (repeated-by> f id within): each id seen under every level of within
   (frequency-weights frame variable)       ; one row per cell, the variable counts cases
   (one-row-per-case frame)
+  (row-order-time frame)                   ; rows are in time order
   ;; how a variable came about, and when it was measured
   (set-by-design variable)                 ; chosen by the investigator
   (randomized variable)                    ; assigned by a random mechanism
@@ -80,9 +82,15 @@
 
 (define-action describe-continuous 1           ; mean, sd, quantiles, histogram
   (?v variable)
-  (and (continuous ?v) (not (described ?v)))
+  (and (continuous ?v) (not (bimodal ?v)) (not (described ?v)))
   (?v)
   (assert (described ?v) (used describe-continuous)))
+
+(define-action describe-by-modes 1             ; split at the trough, describe each part
+  (?v variable)
+  (and (continuous ?v) (bimodal ?v) (not (described ?v)))
+  (?v)
+  (assert (described ?v) (used describe-by-modes)))
 
 ;;; One variable: the next value. Which question makes sense depends on how
 ;;; the values came about (examples/1d-analysis.lisp).
@@ -237,6 +245,13 @@
   (?f ?y ?x)
   (assert (inferred-trend> ?y ?x) (used robust-se)))
 
+(define-action hac-se 1                        ; Newey-West: serially correlated errors
+  (product ?f frame ?y variable ?x variable)
+  (and (estimated-trend> ?y ?x) (row-order-time ?f)
+       (not (inferred-trend> ?y ?x)))
+  (?f ?y ?x)
+  (assert (inferred-trend> ?y ?x) (used hac-se)))
+
 (define-action normal-prediction-interval 1    ; predict(..., interval = "prediction")
   (product ?f frame ?y variable ?x variable)
   (and (estimated-trend> ?y ?x) (rows-independent ?f) (constant-spread> ?y ?x)
@@ -263,6 +278,7 @@
 (define-action assume-rows-independent 1       ; R's silent default
   (?f frame)
   (and (not (rows-independent ?f))
+       (not (row-order-time ?f))
        (not (exists ((?a ?b) variable) (repeated-by> ?f ?a ?b))))
   (?f)
   (assert (rows-independent ?f) (used assume-rows-independent)))

@@ -156,3 +156,22 @@ EXPECTED-PLANS (compared as sets; see NORMALIZE-PLANS)."
 (test ucb-total-effect-stays-pooled-when-the-timing-is-known
   (plans-for ("04-ucb-admissions" :timing :total-effect)
     ((pooled-odds-ratio ucb admit gender))))
+
+;;; 05 faithful: shape and row order
+
+(test faithful-description-follows-the-shape
+  (plans-for ("05-faithful" :plain :describe)
+    ((describe-continuous eruptions)))
+  ;; After a check found two modes, mean and sd are no longer planned.
+  (plans-for ("05-faithful" :bimodal :describe)
+    ((describe-by-modes eruptions))))
+
+(test faithful-time-ordered-rows-need-time-series-standard-errors
+  (plans-for ("05-faithful" :plain :inference)
+    ((assume-rows-independent faithful) (ols-fit waiting eruptions)
+     (robust-se faithful waiting eruptions))
+    ((assume-rows-independent faithful) (ols-fit waiting eruptions)
+     (assume-constant-spread waiting eruptions) (classical-se faithful waiting eruptions)))
+  ;; Rows are consecutive eruptions: independence can no longer be assumed.
+  (plans-for ("05-faithful" :time-ordered :inference)
+    ((ols-fit waiting eruptions) (hac-se faithful waiting eruptions))))

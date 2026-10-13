@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 ### Added
+- Example 05 faithful as a planning problem: after a check finds two
+  modes, describe-by-modes replaces describe-continuous; declaring rows as
+  time-ordered removes the independence assumption and leaves ols-fit
+  with hac-se. Domain: describe-by-modes, hac-se, relations bimodal and
+  row-order-time.
 - Example 04 UCBAdmissions as a planning problem: without declared counts
   the plan assumes one row per applicant; the estimand is the goal (total
   effect: pooled-odds-ratio; direct effect: mantel-haenszel with
