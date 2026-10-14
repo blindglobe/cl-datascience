@@ -1,0 +1,11 @@
+alexandria, ghcr.io/ocicl/alexandria@sha256:e433c2e076ed3bcf8641b97b00192680db2201d305efac9293539dee88c7fbf7, alexandria-20240503-8514d8e/alexandria.asd
+bordeaux-threads, ghcr.io/ocicl/bordeaux-threads@sha256:bbb32afe3987e102149cc019f4f7366a05f7a37d1503f5f86a27745e671c320a, bordeaux-threads-0.9.4/bordeaux-threads.asd
+global-vars, ghcr.io/ocicl/global-vars@sha256:d197e871c9c9abc4bf31b1186f5fd28f0ca848ebe2e9dddf2d82ecee01dbdc65, global-vars-20240503-c749f32/global-vars.asd
+global-vars-test, ghcr.io/ocicl/global-vars@sha256:d197e871c9c9abc4bf31b1186f5fd28f0ca848ebe2e9dddf2d82ecee01dbdc65, global-vars-20240503-c749f32/global-vars-test.asd
+iterate, ghcr.io/ocicl/iterate@sha256:6950c55e3782d58cabbbb5753111a70d8cafab8348b7fd6f2143d9abeaab46fb, iterate-20250703-d27d7ff/iterate.asd
+lparallel, ghcr.io/ocicl/lparallel@sha256:4b9e626031904279f7f2b53b3ca52f380642cb5402390e478fe1f535f0829379, lparallel-20240503-9c11f40/lparallel.asd
+lparallel-bench, ghcr.io/ocicl/lparallel@sha256:4b9e626031904279f7f2b53b3ca52f380642cb5402390e478fe1f535f0829379, lparallel-20240503-9c11f40/lparallel-bench.asd
+lparallel-test, ghcr.io/ocicl/lparallel@sha256:4b9e626031904279f7f2b53b3ca52f380642cb5402390e478fe1f535f0829379, lparallel-20240503-9c11f40/lparallel-test.asd
+trivial-features, ghcr.io/ocicl/trivial-features@sha256:e278e24d39060fc7d3715531b16ddd9ab7f93f22ade53e436c0b86dbae3aa065, trivial-features-1.0/trivial-features.asd
+trivial-garbage, ghcr.io/ocicl/trivial-garbage@sha256:a85dcf4110ad60ae9f6c70970acceb2bf12402ce5326891643d35506059afb1d, trivial-garbage-20240503-3474f64/trivial-garbage.asd
+wouldwork, git+https://github.com/davypough/wouldwork.git@1d4e764633365ff5f7c187b94e98c1f8f09ed2fd#ref=1d4e764633365ff5f7c187b94e98c1f8f09ed2fd, wouldwork-1d4e764/wouldwork.asd
