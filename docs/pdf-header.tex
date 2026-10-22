@@ -1,0 +1,9 @@
+% LaTeX additions for the PDFs built from docs/*.md (see build-pdf.sh)
+\usepackage{fvextra}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\},fontsize=\small}
+\fvset{breaklines,fontsize=\small}
+\usepackage{xurl}
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtable}{\small}
+\renewcommand{\arraystretch}{1.2}
+\setlength{\emergencystretch}{2em}

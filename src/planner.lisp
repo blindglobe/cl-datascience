@@ -136,7 +136,9 @@ problem every time it is loaded, so a problem that failed to stage must not
 stay staged."
   (let ((*standard-output* (make-broadcast-stream))
         (*error-output* (make-broadcast-stream))
-        (*trace-output* (make-broadcast-stream)))
+        (*trace-output* (make-broadcast-stream))
+        (*package* *package*)
+        (*readtable* *readtable*))
     (ignore-errors (ww::%stage "blocks3"))))
 
 (defun find-plans (&key objects facts goal domain (depth-cutoff 6))
@@ -160,7 +162,10 @@ reached. Signals PLANNING-ERROR when wouldwork rejects the problem."
       (handler-case
           (let ((*standard-output* output)
                 (*error-output* output)
-                (*trace-output* output))
+                (*trace-output* output)
+                ;; staging reloads wouldwork, which sets *PACKAGE*
+                (*package* *package*)
+                (*readtable* *readtable*))
             ;; Staging reloads wouldwork, which resets its folder list.
             (ww:add-problem-folder (namestring directory))
             (unless (ww::%stage *problem-name*)

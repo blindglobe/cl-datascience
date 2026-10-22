@@ -63,6 +63,14 @@ steps is not part of the contract)."
         (second (toy-plans '(raw potato) '(dirty potato))))
     (is (not (plans-equal first second)))))
 
+(test planning-leaves-the-callers-package-alone
+  ;; Regression: staging reloads wouldwork, which changed *PACKAGE*; forms
+  ;; read after a call (a script, the REPL) were then read in wouldwork's
+  ;; package.
+  (let ((*package* (find-package :cl-datascience/tests)))
+    (toy-plans '(raw potato))
+    (is (eq (find-package :cl-datascience/tests) *package*))))
+
 (test unreachable-goal-gives-no-plans
   (is (null (find-plans :objects '((item potato)) :facts '((dirty potato))
                         :goal '(cooked potato) :domain (toy-domain)))))
